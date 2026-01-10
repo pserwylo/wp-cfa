@@ -2,9 +2,10 @@
 
 namespace WP_CFA;
 
-class FdrRssFeed
-{
+use DateTimeImmutable;
+use DOMDocument;
 
+class FdrRssFeed {
 	/**
 	 * Extracts total fire ban flags and fire danger ratings from the description of the CFA RSS feed.
 	 * Example description (I've formatted for clarity, but it typically comes on one line:
@@ -67,85 +68,83 @@ class FdrRssFeed
 	 *   ]
 	 * ]
 	 */
-    static function parse_rss_item($title, $html)
-    {
-        $dom = new \DOMDocument();
+	public static function parse_rss_item( $title, $html ) {
+		$dom = new DOMDocument();
 
-        // Suppress warnings for malformed HTML
-        @$dom->loadHTML($html);
+		// Suppress warnings for malformed HTML.
+		@$dom->loadHTML( $html );
 
-        $data = [];
-        $paragraphs = $dom->getElementsByTagName('p');
-        foreach ($paragraphs as $p) {
-			if ($p->childNodes->length <= 1) {
+		$data       = [];
+		$paragraphs = $dom->getElementsByTagName( 'p' );
+		foreach ( $paragraphs as $p ) {
+			if ( 1 >= $p->childNodes->length ) {
 				$data[] = $p->nodeValue;
 			} else {
 				$nodes = [];
-				foreach ($p->childNodes as $node) {
-					if ($node->nodeValue) {
+				foreach ( $p->childNodes as $node ) {
+					if ( $node->nodeValue ) {
 						$nodes[] = $node->nodeValue;
 					}
 				}
 				$data[] = $nodes;
 			}
-        }
+		}
 
-        // Format is "Tuesday, 05 January 2025"
-        $date = \DateTimeImmutable::createFromFormat('l, d F Y', $title)->format('Y-m-d');
+		// Format is "Tuesday, 05 January 2025".
+		$date = DateTimeImmutable::createFromFormat( 'l, d F Y', $title )->format( 'Y-m-d' );
 
 		$tfbs = [];
 
-		if (count($data) >= 1) {
-			foreach ($data[1] as $tfbData) {
-				$parts = explode(": ", strtolower($tfbData));
-				$district = Utils::district_to_id($parts[0]);
-				$tfb = str_starts_with($parts[1] ?? '', 'yes');
-				$tfbs[$district] = $tfb;
+		if ( 1 <= count( $data ) ) {
+			foreach ( $data[1] as $tfbData ) {
+				$parts             = explode( ': ', strtolower( $tfbData ) );
+				$district          = Utils::district_to_id( $parts[0] );
+				$tfb               = str_starts_with( $parts[1] ?? '', 'yes' );
+				$tfbs[ $district ] = $tfb;
 			}
 		}
 
 		$ratings = [];
-		if (count($data) >= 3) {
-			foreach ($data[3] as $ratingData) {
-				$parts = explode(": ", strtolower($ratingData));
-				$district = Utils::district_to_id($parts[0]);
-				$rating = $parts[1] ?? '';
-				$ratings[$district] = $rating;
+		if ( 3 <= count( $data ) ) {
+			foreach ( $data[3] as $ratingData ) {
+				$parts                = explode( ': ', strtolower( $ratingData ) );
+				$district             = Utils::district_to_id( $parts[0] );
+				$rating               = $parts[1] ?? '';
+				$ratings[ $district ] = $rating;
 			}
 		}
 
-		$result = ['date' => $date, 'districts' => []];
-		foreach(Utils::$districts as $districtId => $districtLabel) {
-			$result['districts'][$districtId] = [
-				'tfb' => $tfbs[$districtId],
-				'rating' => $ratings[$districtId],
+		$result = [ 'date' => $date, 'districts' => [] ];
+		foreach ( Utils::$districts as $districtId => $districtLabel ) {
+			$result['districts'][ $districtId ] = [
+				'tfb'    => $tfbs[ $districtId ],
+				'rating' => $ratings[ $districtId ],
 			];
 		}
 
 		return $result;
-    }
+	}
 
 	/**
 	 * Reads the fire danger rating and total fireban forecast
 	 * feed from https://www.cfa.vic.gov.au/cfa/rssfeed/tfbfdrforecast_rss.xml
 	 * and for each of the next 4 days, returns an array containing tfb and ratings for each district.
 	 */
-    static function fire_danger_rating_feed()
-    {
-        $feed_url = "https://www.cfa.vic.gov.au/cfa/rssfeed/tfbfdrforecast_rss.xml";
+	public static function fire_danger_rating_feed() {
+		$feed_url = 'https://www.cfa.vic.gov.au/cfa/rssfeed/tfbfdrforecast_rss.xml';
 
-        $rss = fetch_feed($feed_url);
+		$rss = fetch_feed( $feed_url );
 
-        if (is_wp_error($rss)) {
-            return [];
-        }
+		if ( is_wp_error( $rss ) ) {
+			return [];
+		}
 
-        $items = $rss->get_items(0, 4);
-        $info = [];
-        foreach ($items as $item) {
-            $info[] = self::parse_rss_item($item->get_title(), $item->get_description());
-        }
+		$items = $rss->get_items( 0, 4 );
+		$info  = [];
+		foreach ( $items as $item ) {
+			$info[] = self::parse_rss_item( $item->get_title(), $item->get_description() );
+		}
 
-        return $info;
-    }
+		return $info;
+	}
 }

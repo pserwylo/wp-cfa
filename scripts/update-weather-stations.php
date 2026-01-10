@@ -1,26 +1,26 @@
 <?php
 
-$html = file_get_contents('https://www.bom.gov.au/vic/observations/vicall.shtml');
+$html  = file_get_contents( 'https://www.bom.gov.au/vic/observations/vicall.shtml' );
 $tegex = '/<th id="t.*-station-.*" class="rowleftcolumn"><a href="\/products(\/IDV.*\/IDV.*..*.shtml)">(.*)<\/a><\/th>/';
 
-$matches = array();
+$matches = [];
 
-// Capture each of the table cells using the regex above
-preg_match_all($tegex, $html, $matches, PREG_SET_ORDER, );
+// Capture each of the table cells using the regex above.
+preg_match_all( $tegex, $html, $matches, PREG_SET_ORDER, );
 
-$baseUrl = 'https://reg.bom.gov.au/fwo';
-$stations = array();
-foreach($matches as $match) {
-	$url = $baseUrl . preg_replace('/(.*)\.shtml$/', '$1.json', $match[1]);
+$baseUrl  = 'https://reg.bom.gov.au/fwo';
+$stations = [];
+foreach ( $matches as $match ) {
+	$url  = $baseUrl . preg_replace( '/(.*)\.shtml$/', '$1.json', $match[1] );
 	$name = $match[2];
 
-	$stations[$url] = $name;
+	$stations[ $url ] = $name;
 }
 
-asort($stations);
+asort( $stations );
 
 $output = "static \$stations = [\n";
-foreach ($stations as $url => $name) {
+foreach ( $stations as $url => $name ) {
 	$output .= "  '$url' => '$name',\n";
 }
 $output .= "]\n";

@@ -8,7 +8,9 @@
     "wp-cli/i18n-command": "^2",
     "10up/wp_mock": "^1.1.0",
     "phpunit/phpunit": "^9.6",
-    "wordpress/wordpress": "^6.9"
+    "wordpress/wordpress": "^6.9",
+    "friendsofphp/php-cs-fixer": "^3.92",
+    "aysnc/wordpress-php-cs-fixer": "^0.3.0"
   },
   "scripts": {
     "test": "phpunit",

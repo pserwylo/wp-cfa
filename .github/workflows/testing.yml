@@ -4,8 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
-      - master
+      - '**'
 
 jobs:
   phpunit:
@@ -21,11 +20,15 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: $
-          tools: phpunit-polyfills:1.1
+          php-version: ${{ matrix.php-versions }}
+          coverage: xdebug
+          tools: cs2pr
 
       - name: Composer install
         run: composer install
 
+      - name: Run phpcs
+        run: ./vendor/bin/php-cs-fixer fix --dry-run --format=checkstyle | cs2pr
+
       - name: Run tests
-        run: phpunit
+        run: ./vendor/bin/phpunit

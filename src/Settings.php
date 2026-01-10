@@ -3,12 +3,13 @@
 namespace WP_CFA;
 
 class Settings {
-
 	private static $id = 'wp_cfa';
-	private static $setting_name_district = 'wp_cfa_district';
-	private static $setting_name_weather_station = 'wp_cfa_weather_station';
 
-	static $bom_weather_stations = [
+	public static $setting_name_district = 'wp_cfa_district';
+
+	public static $setting_name_weather_station = 'wp_cfa_weather_station';
+
+	public static $bom_weather_stations = [
 		'https://reg.bom.gov.au/fwo/IDV60801/IDV60801.94846.json' => 'Aireys Inlet',
 		'https://reg.bom.gov.au/fwo/IDV60801/IDV60801.95896.json' => 'Albury',
 		'https://reg.bom.gov.au/fwo/IDV60801/IDV60801.94834.json' => 'Ararat',
@@ -111,63 +112,62 @@ class Settings {
 		'https://reg.bom.gov.au/fwo/IDV60801/IDV60801.94862.json' => 'Yarrawonga',
 	];
 
-	static function init()
-	{
-		register_setting(self::$id, self::$setting_name_district, [
-			'default' => 'central',
-			'sanitize_callback' => function($value) {
-				return isset(Utils::$districts[$value]) ? $value : 'central';
+	public static function init(): void {
+		register_setting( self::$id, self::$setting_name_district, [
+			'default'           => 'central',
+			'sanitize_callback' => function ( $value ) {
+				return isset( Utils::$districts[ $value ] ) ? $value : 'central';
 			},
-		]);
+		] );
 
-		register_setting(self::$id, self::$setting_name_weather_station, [
-			'default' => 'https://reg.bom.gov.au/fwo/IDV60801/IDV60801.94866.json', // Melbourne (Olympic park)
-			'sanitize_callback' => function($value) {
-				return isset(self::$bom_weather_stations[$value]) ? $value : 'https://reg.bom.gov.au/fwo/IDV60801/IDV60801.94866.json';
+		register_setting( self::$id, self::$setting_name_weather_station, [
+			'default'           => 'https://reg.bom.gov.au/fwo/IDV60801/IDV60801.94866.json', // Melbourne (Olympic park).
+			'sanitize_callback' => function ( $value ) {
+				return isset( self::$bom_weather_stations[ $value ] ) ? $value : 'https://reg.bom.gov.au/fwo/IDV60801/IDV60801.94866.json';
 			},
-		]);
+		] );
 
 		add_settings_field(
 			self::$setting_name_district,
 			'District',
-			[self::class, 'district_field_callback'],
+			[ self::class, 'district_field_callback' ],
 			self::$id,
 		);
 
 		add_settings_field(
 			self::$setting_name_weather_station,
 			'Weather Station',
-			[self::class, 'weather_station_field_callback'],
+			[ self::class, 'weather_station_field_callback' ],
 			self::$id,
 		);
 	}
 
-	static function init_menu() {
+	public static function init_menu(): void {
 		add_options_page(
 			'WP CFA Settings',
 			'WP CFA',
 			'manage_options',
 			self::$id,
-			[self::class, 'render_form']
+			[ self::class, 'render_form' ],
 		);
 	}
 
-	static function get_district() {
-		return get_option(self::$setting_name_district, 'central');
+	public static function get_district() {
+		return get_option( self::$setting_name_district, 'central' );
 	}
 
-	static function get_weather_station() {
-		return get_option(self::$setting_name_weather_station, 'https://reg.bom.gov.au/fwo/IDV60801/IDV60801.95936.json');
+	public static function get_weather_station() {
+		return get_option( self::$setting_name_weather_station, 'https://reg.bom.gov.au/fwo/IDV60801/IDV60801.95936.json' );
 	}
 
-	static function district_field_callback() {
+	public static function district_field_callback(): void {
 		$settingValue = self::get_district();
-		$settingName = self::$setting_name_district;
-		$options = '';
+		$settingName  = self::$setting_name_district;
+		$options      = '';
 
-		foreach(Utils::$districts as $districtId => $districtLabel) {
+		foreach ( Utils::$districts as $districtId => $districtLabel ) {
 			$selected = $districtId === $settingValue ? 'selected="selected"' : '';
-			$options .= "<option value='" . esc_attr($districtId). "' {$selected}>" . esc_html($districtLabel) . "</option>";
+			$options .= "<option value='" . esc_attr( $districtId ) . "' {$selected}>" . esc_html( $districtLabel ) . '</option>';
 		}
 		echo <<<html
 <select name="{$settingName}">
@@ -179,14 +179,14 @@ class Settings {
 html;
 	}
 
-	static function weather_station_field_callback() {
+	public static function weather_station_field_callback(): void {
 		$settingValue = self::get_weather_station();
-		$settingName = self::$setting_name_weather_station;
-		$options = '';
+		$settingName  = self::$setting_name_weather_station;
+		$options      = '';
 
-		foreach(self::$bom_weather_stations as $url => $name) {
+		foreach ( self::$bom_weather_stations as $url => $name ) {
 			$selected = $url === $settingValue ? 'selected="selected"' : '';
-			$options .= "<option value='" . esc_url($url). "' {$selected}>" . esc_html($name) . "</option>";
+			$options .= "<option value='" . esc_url( $url ) . "' {$selected}>" . esc_html( $name ) . '</option>';
 		}
 
 		echo <<<html
@@ -201,15 +201,15 @@ html;
 html;
 	}
 
-	public static function render_form() {
-		if (!current_user_can('manage_options')) {
+	public static function render_form(): void {
+		if ( !current_user_can( 'manage_options' ) ) {
 			return;
 		}
 
 		settings_errors( self::$id );
 		?>
 		<div class="wrap">
-		<h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+		<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 		<form action="options.php" method="post">
 			<table class="form-table" role="presentation">
 			<?php
