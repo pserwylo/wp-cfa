@@ -3,11 +3,100 @@
 namespace WP_CFA;
 
 class Settings {
-	private static $id = 'wp_cfa';
+	private static string $id = 'wp_cfa';
 
-	public static $setting_name_district = 'wp_cfa_district';
+	public static string $setting_name_district = 'wp_cfa_district';
 
-	public static $setting_name_weather_station = 'wp_cfa_weather_station';
+	public static string $setting_name_weather_station = 'wp_cfa_weather_station';
+
+	public static string $setting_name_forecast_area = 'wp_cfa_forecast_area';
+
+	public static array $bom_forecast_areas = [
+		'VIC_PT001' => 'Aireys Inlet',
+		'VIC_PT084' => 'Albury-Wodonga',
+		'VIC_PT002' => 'Ararat',
+		'VIC_PT003' => 'Avalon',
+		'VIC_PT004' => 'Bairnsdale',
+		'VIC_PT005' => 'Ballarat',
+		'VIC_PT006' => 'Beechworth',
+		'VIC_PT007' => 'Benalla',
+		'VIC_PT008' => 'Bendigo',
+		'VIC_PT151' => 'Birchip',
+		'VIC_PT010' => 'Cape Otway',
+		'VIC_PT011' => 'Casterton',
+		'VIC_PT012' => 'Castlemaine',
+		'VIC_PT013' => 'Cerberus',
+		'VIC_PT194' => 'Cobram',
+		'VIC_PT014' => 'Colac',
+		'VIC_PT016' => 'Corryong',
+		'VIC_PT017' => 'Cranbourne',
+		'VIC_PT203' => 'Dandenong',
+		'VIC_PT204' => 'Drouin',
+		'VIC_PT019' => 'Echuca',
+		'VIC_PT089' => 'Edenhope',
+		'VIC_PT022' => 'Falls Creek',
+		'VIC_PT023' => 'Frankston',
+		'VIC_PT025' => 'Geelong',
+		'VIC_PT139' => 'Gisborne',
+		'VIC_PT027' => 'Hamilton',
+		'VIC_PT028' => 'Heywood',
+		'VIC_PT029' => 'Horsham',
+		'VIC_PT031' => 'Kerang',
+		'VIC_PT033' => 'Kyabram',
+		'VIC_PT140' => 'Kyneton',
+		'VIC_PT034' => 'Lake Eildon',
+		'VIC_PT167' => 'Lake Mountain',
+		'VIC_PT035' => 'Lakes Entrance',
+		'VIC_PT036' => 'Latrobe Valley',
+		'VIC_PT037' => 'Laverton',
+		'VIC_PT141' => 'Leongatha',
+		'VIC_PT040' => 'Mallacoota',
+		'VIC_PT169' => 'Mansfield',
+		'VIC_PT041' => 'Maryborough',
+		'VIC_PT042' => 'Melbourne',
+		'VIC_PT143' => 'Melton',
+		'VIC_PT043' => 'Mildura',
+		'VIC_PT163' => 'Moe',
+		'VIC_PT044' => 'Moorabbin',
+		'VIC_PT110' => 'Mornington',
+		'VIC_PT045' => 'Mortlake',
+		'VIC_PT097' => 'Mount Baw Baw',
+		'VIC_PT046' => 'Mount Buller',
+		'VIC_PT047' => 'Mount Dandenong',
+		'VIC_PT048' => 'Mount Hotham',
+		'VIC_PT051' => 'Nhill',
+		'VIC_PT053' => 'Omeo',
+		'VIC_PT054' => 'Orbost',
+		'VIC_PT055' => 'Ouyen',
+		'VIC_PT144' => 'Pakenham',
+		'VIC_PT056' => 'Phillip Island',
+		'VIC_PT059' => 'Port Fairy',
+		'VIC_PT060' => 'Portland',
+		'VIC_PT061' => 'Redesdale',
+		'VIC_PT062' => 'Rhyll',
+		'VIC_PT063' => 'Rutherglen',
+		'VIC_PT064' => 'Sale',
+		'VIC_PT065' => 'Scoresby',
+		'VIC_PT066' => 'Seymour',
+		'VIC_PT068' => 'Shepparton',
+		'VIC_PT069' => 'Stawell',
+		'VIC_PT146' => 'Sunbury',
+		'VIC_PT071' => 'Swan Hill',
+		'VIC_PT072' => 'Tatura',
+		'VIC_PT134' => 'Torquay',
+		'VIC_PT205' => 'Traralgon',
+		'VIC_PT073' => 'Tullamarine',
+		'VIC_PT075' => 'Wangaratta',
+		'VIC_PT076' => 'Warracknabeal',
+		'VIC_PT148' => 'Warragul',
+		'VIC_PT077' => 'Warrnambool',
+		'VIC_PT078' => 'Watsonia',
+		'VIC_PT079' => 'Weeaproinah',
+		'VIC_PT080' => 'Wilsons Promontory',
+		'VIC_PT081' => 'Wonthaggi',
+		'VIC_PT082' => 'Yarra Glen',
+		'VIC_PT083' => 'Yarrawonga',
+	];
 
 	public static $bom_weather_stations = [
 		'https://reg.bom.gov.au/fwo/IDV60801/IDV60801.94846.json' => 'Aireys Inlet',
@@ -120,6 +209,13 @@ class Settings {
 			},
 		] );
 
+		register_setting( self::$id, self::$setting_name_forecast_area, [
+			'default'           => 'VIC_PT042', // Melbourne.
+			'sanitize_callback' => function ( $value ) {
+				return isset( self::$bom_forecast_areas[ $value ] ) ? $value : 'VIC_PT042';
+			},
+		] );
+
 		register_setting( self::$id, self::$setting_name_weather_station, [
 			'default'           => 'https://reg.bom.gov.au/fwo/IDV60801/IDV60801.94866.json', // Melbourne (Olympic park).
 			'sanitize_callback' => function ( $value ) {
@@ -138,6 +234,13 @@ class Settings {
 			self::$setting_name_weather_station,
 			'Weather Station',
 			[ self::class, 'weather_station_field_callback' ],
+			self::$id,
+		);
+
+		add_settings_field(
+			self::$setting_name_forecast_area,
+			'Forecast Area',
+			[ self::class, 'forecast_area_field_callback' ],
 			self::$id,
 		);
 	}
@@ -160,6 +263,10 @@ class Settings {
 		return get_option( self::$setting_name_weather_station, 'https://reg.bom.gov.au/fwo/IDV60801/IDV60801.95936.json' );
 	}
 
+	public static function get_forecast_area() {
+		return get_option( self::$setting_name_forecast_area, 'VIC_PT042' );
+	}
+
 	public static function district_field_callback(): void {
 		$settingValue = self::get_district();
 		$settingName  = self::$setting_name_district;
@@ -175,6 +282,7 @@ class Settings {
 </select>
 <p class="description">
 	Required to ascertain the fire danger rating and total fire ban info. See <a href="https://www.cfa.vic.gov.au/warnings-restrictions/fire-bans-ratings-and-restrictions/total-fire-bans-fire-danger-ratings">Total Fire Bans &amp; Fire Danger Ratings</a> for details.
+	This is cached for 1 hour.
 </p>
 html;
 	}
@@ -196,7 +304,28 @@ html;
 <p class="description">
 	The list of weather stations is from the
 	<a href="https://www.bom.gov.au/vic/observations/vicall.shtml">list of Victorian weather stations on the BOM website</a>.
-	Choose the closest to your brigade.
+	Choose the closest to your brigade. This is cached for 10 minutes.
+</p>
+html;
+	}
+
+	public static function forecast_area_field_callback(): void {
+		$settingValue = self::get_forecast_area();
+		$settingName  = self::$setting_name_forecast_area;
+		$options      = '';
+
+		foreach ( self::$bom_forecast_areas as $aac => $name ) {
+			$selected = $aac === $settingValue ? 'selected="selected"' : '';
+			$options .= "<option value='" . esc_attr( $aac ) . "' {$selected}>" . esc_html( $name ) . '</option>';
+		}
+
+		echo <<<html
+<select name="{$settingName}">
+	{$options}
+</select>
+<p class="description">
+	Forecast areas from the BOM. Doesn't exactly match up with the weather stations for observations, due to the data provided by the BOM.
+	Choose the closest to your brigade. This is cached for 1 hour.
 </p>
 html;
 	}
@@ -205,6 +334,13 @@ html;
 		if ( !current_user_can( 'manage_options' ) ) {
 			return;
 		}
+
+		// Visiting settings is done so irregularly, that we may as well use it as an.
+		// opportunity to force these to clear. Especially seeing as the user is probably.
+		// here to change the forecast district or something else like that.
+		( new BomObservations() )->clear_transient();
+		( new BomForecasts() )->clear_transient();
+		FdrRssFeed::clear_transient();
 
 		settings_errors( self::$id );
 		?>
@@ -217,7 +353,7 @@ html;
 			do_settings_fields( self::$id, 'default' );
 			?>
 			</table>
-			<?php echo submit_button(); ?>
+			<?php submit_button(); ?>
 		</form>
 		<?php
 	}

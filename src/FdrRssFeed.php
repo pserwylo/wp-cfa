@@ -131,6 +131,11 @@ class FdrRssFeed {
 	 * and for each of the next 4 days, returns an array containing tfb and ratings for each district.
 	 */
 	public static function fire_danger_rating_feed() {
+		$cached = get_transient( 'wp_cfa_fire_danger_rating_feed' );
+		if ( $cached ) {
+			return $cached;
+		}
+
 		$feed_url = 'https://www.cfa.vic.gov.au/cfa/rssfeed/tfbfdrforecast_rss.xml';
 
 		$rss = fetch_feed( $feed_url );
@@ -145,6 +150,11 @@ class FdrRssFeed {
 			$info[] = self::parse_rss_item( $item->get_title(), $item->get_description() );
 		}
 
+		set_transient( 'wp_cfa_fire_danger_rating_feed', $info, HOUR_IN_SECONDS );
 		return $info;
+	}
+
+	public static function clear_transient(): void {
+		delete_transient( 'wp_cfa_fire_danger_rating_feed' );
 	}
 }

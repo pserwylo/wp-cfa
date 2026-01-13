@@ -12,6 +12,11 @@ class BomObservations {
 	 * Reads the BOM weather observations JSON for the configured weather station.
 	 */
 	public function fetch_bom_observation_json() {
+		$cached = get_transient( 'wp_cfa_bom_observation_json' );
+		if ( $cached ) {
+			return $cached;
+		}
+
 		$stationUrl = Settings::get_weather_station();
 
 		if ( !$stationUrl ) {
@@ -34,6 +39,13 @@ class BomObservations {
 			return [];
 		}
 
-		return json_decode( $body, true );
+		$json = json_decode( $body, true );
+		set_transient( 'wp_cfa_bom_observation_json', $json, 10 * MINUTE_IN_SECONDS );
+
+		return $json;
+	}
+
+	public function clear_transient(): void {
+		delete_transient( 'wp_cfa_bom_observation_json' );
 	}
 }

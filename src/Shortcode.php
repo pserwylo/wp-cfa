@@ -5,10 +5,13 @@ namespace WP_CFA;
 use function _doing_it_wrong;
 
 class Shortcode {
-	private $bom;
+	private $observations;
 
-	public function __construct( BomObservations $bom = new BomObservations() ) {
-		$this->bom = $bom;
+	private $forecasts;
+
+	public function __construct( BomObservations $observations = new BomObservations(), BomForecasts $forecasts = new BomForecasts() ) {
+		$this->observations = $observations;
+		$this->forecasts    = $forecasts;
 	}
 
 	public function date_time( $attributes ): string {
@@ -26,7 +29,7 @@ class Shortcode {
 
 		$format = $attributes['format'];
 
-		$dateTime = @date( $format, $timestamp );
+		$dateTime = @wp_date( $format, $timestamp );
 		$tag      = self::add_style_and_class_to_tag( 'span', $attributes );
 		return "<$tag>$dateTime</span>";
 	}
@@ -76,6 +79,18 @@ class Shortcode {
 		return '<' . $tag . ' src="' . esc_url( $url ) . '" />';
 	}
 
+	public function fire_danger_rating_class( $attributes ): string {
+		$district = Utils::district_from_attributes( $attributes );
+		$day      = Utils::day_from_attributes( $attributes );
+
+		if ( !$district ) {
+			return '';
+		}
+
+		$rating = strtoupper( $this->rating_string_for_district( $district, $day ) );
+		return 'wp-cfa-rating--' . esc_attr( strtolower( $rating ) );
+	}
+
 	public function fire_danger_rating_text( $attributes ): string {
 		$district = Utils::district_from_attributes( $attributes );
 		$day      = Utils::day_from_attributes( $attributes );
@@ -93,14 +108,14 @@ class Shortcode {
 	}
 
 	public function weather_observation_temperature_number(): string {
-		$observation = $this->bom->get_latest_observation();
+		$observation = $this->observations->get_latest_observation();
 		$temp        = $observation['air_temp'] ?? false;
 
 		return false === $temp ? '' : $temp;
 	}
 
 	public function weather_observation_temperature_string( $attributes ): string {
-		$observation = $this->bom->get_latest_observation();
+		$observation = $this->observations->get_latest_observation();
 		$temp        = $observation['air_temp'] ?? false;
 
 		if ( false === $temp ) {
@@ -113,7 +128,7 @@ class Shortcode {
 	}
 
 	public function weather_observation_temperature_rounded_string( $attributes ): string {
-		$observation = $this->bom->get_latest_observation();
+		$observation = $this->observations->get_latest_observation();
 		$temp        = $observation['air_temp'] ?? false;
 
 		if ( false === $temp ) {
@@ -123,5 +138,83 @@ class Shortcode {
 		$string = round( $temp ) . '°';
 		$tag    = self::add_style_and_class_to_tag( 'span', $attributes );
 		return "<$tag>$string</span>";
+	}
+
+	public function forecast_max_exists( $attributes, $content ): string {
+		$max = $this->get_area_forecasts_value( $attributes, 'max' );
+		if ( null !== $max && 0 < strlen( $max ) ) {
+			return do_shortcode( $content );
+		}
+
+		return '';
+	}
+
+	public function forecast_max_empty( $attributes, $content ): string {
+		$max = $this->get_area_forecasts_value( $attributes, 'max' );
+		if ( null === $max || 0 === strlen( $max ) ) {
+			return do_shortcode( $content );
+		}
+
+		return '';
+	}
+
+	public function forecast_max( $attributes ): string {
+		$max = $this->get_area_forecasts_value( $attributes, 'max' );
+		if ( null === $max ) {
+			return '';
+		}
+
+		$tag = self::add_style_and_class_to_tag( 'span', $attributes );
+		return "<$tag>" . esc_html( $max ) . '°</span>';
+	}
+
+	public function forecast_min_exists( $attributes, $content ): string {
+		$min = $this->get_area_forecasts_value( $attributes, 'min' );
+		if ( null !== $min || 0 < strlen( $min ) ) {
+			return do_shortcode( $content );
+		}
+
+		return '';
+	}
+
+	public function forecast_min_empty( $attributes, $content ): string {
+		$min = $this->get_area_forecasts_value( $attributes, 'min' );
+		if ( null === $min || 0 === strlen( $min ) ) {
+			return do_shortcode( $content );
+		}
+
+		return '';
+	}
+
+	public function forecast_min( $attributes ): string {
+		$min = $this->get_area_forecasts_value( $attributes, 'min' );
+		if ( null === $min ) {
+			return '';
+		}
+
+		$tag = self::add_style_and_class_to_tag( 'span', $attributes );
+		return "<$tag>" . esc_html( $min ) . '°</span>';
+	}
+
+	public function forecast_icon_url( $attributes ): string {
+		$url = $this->get_area_forecasts_value( $attributes, 'iconMonochromeUrl' );
+		if ( null === $url ) {
+			return '';
+		}
+
+		return esc_url( $url );
+	}
+
+	protected function get_area_forecasts_value( $attributes, $key ) {
+		$forecasts = $this->forecasts->get_area_forecasts();
+		if ( null === $forecasts ) {
+			return null;
+		}
+
+		$day              = Utils::day_from_attributes( $attributes );
+		$indexedForecasts = array_values( $forecasts );
+		$forecast         = $indexedForecasts[ $day ] ?? [];
+
+		return $forecast[ $key ] ?? null;
 	}
 }

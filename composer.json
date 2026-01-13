@@ -14,8 +14,11 @@
   },
   "scripts": {
     "test": "phpunit",
+    "lint": "./vendor/bin/php-cs-fixer fix --dry-run",
+    "lint:fix": "./vendor/bin/php-cs-fixer fix",
     "update-weather-stations": "php ./scripts/update-weather-stations.php",
-    "makepot": "wp i18n make-pot ."
+    "makepot": "wp i18n make-pot .",
+    "zip": "rm -r vendor && composer install --no-dev && zip -r wp-cfa-1.0.0.zip public/* wp-cfa.php readme.txt src/* vendor/* LICENSE"
   },
   "repositories": [
     {
@@ -32,6 +35,8 @@
     }
   ],
   "require": {
-    "ext-dom": "*"
+    "ext-dom": "*",
+    "ext-simplexml": "*",
+    "ext-ftp": "*"
   }
 }

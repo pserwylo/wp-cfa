@@ -6,11 +6,25 @@ use Mockery;
 use WP_Mock;
 use WP_Mock\Tools\TestCase;
 
+if ( !defined( 'HOUR_IN_SECONDS' ) ) {
+	define( 'HOUR_IN_SECONDS', 60 * 60 );
+}
+
+if ( !defined( 'MINUTE_IN_SECONDS' ) ) {
+	define( 'MINUTE_IN_SECONDS', 60 );
+}
+
 /**
  * @package Wp_Cfa
  */
 
 class RSSTest extends TestCase {
+	public function setUp(): void {
+		parent::setUp();
+		WP_Mock::userFunction( 'get_transient' )->andReturn( null );
+		WP_Mock::userFunction( 'set_transient' );
+	}
+
 	public function test_parse_rss_html(): void {
 		$multipleTotalFireBans = <<<html
 <p>Today, Wed, 7 Jan 2026 has been declared a day of Total Fire Ban in the Wimmera, South West and Central (includes Melbourne and Geelong) district(s) of Victoria. No fires can be lit or be allowed to remain alight in the open air from 12:01 AM on Wed, 7 Jan 2026 until 11:59 PM Wed, 7 Jan 2026.</p><p>Central: YES - TOTAL FIRE BAN IN FORCE<br>East Gippsland: NO - RESTRICTIONS MAY APPLY<br>Mallee: NO - RESTRICTIONS MAY APPLY<br>North Central: NO - RESTRICTIONS MAY APPLY<br>North East: NO - RESTRICTIONS MAY APPLY<br>Northern Country: NO - RESTRICTIONS MAY APPLY<br>South West: YES - TOTAL FIRE BAN IN FORCE<br>West and South Gippsland: NO - RESTRICTIONS MAY APPLY<br>Wimmera: YES - TOTAL FIRE BAN IN FORCE<br></p><p>Fire Danger Ratings<br/>Bureau of Meteorology forecast issued at: Wednesday, 07 January 2026 05:30 AM</p><p>Central: EXTREME<br>East Gippsland: HIGH<br>Mallee: HIGH<br>North Central: HIGH<br>North East: HIGH<br>Northern Country: HIGH<br>South West: EXTREME<br>West and South Gippsland: HIGH<br>Wimmera: EXTREME<br></p>

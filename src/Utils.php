@@ -37,7 +37,7 @@ class Utils {
 			$day = $attributes['day'];
 		}
 
-		$valid_forecast_days = [ 'today', 'tomorrow', 0, 1, 2, 3 ];
+		$valid_forecast_days = [ 'today', 'tomorrow', '0', '1', '2', '3' ];
 		if ( !in_array( $day, $valid_forecast_days, true ) ) {
 			_doing_it_wrong(
 				__FUNCTION__,
