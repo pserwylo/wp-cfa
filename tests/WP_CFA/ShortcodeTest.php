@@ -81,7 +81,7 @@ class ShortcodeTest extends TestCase {
 		$shortcode->allows( 'rating_string_for_district' )->andReturn( 'catastrophic' );
 
 		$actual   = $shortcode->fire_danger_rating_image_url( [] );
-		$expected = 'public/images/rating-catastrophic.png';
+		$expected = 'public/images/fdr-catastrophic.png';
 		$this->assertEquals( $expected, $actual );
 	}
 
@@ -91,7 +91,7 @@ class ShortcodeTest extends TestCase {
 		$shortcode->allows( 'rating_string_for_district' )->andReturn( 'extreme' );
 
 		$actual   = $shortcode->fire_danger_rating_image_tag( [] );
-		$expected = '<img src="public/images/rating-extreme.png" />';
+		$expected = '<img src="public/images/fdr-extreme.png" />';
 		$this->assertEquals( $expected, $actual );
 	}
 

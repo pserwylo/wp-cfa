@@ -64,7 +64,7 @@ class Shortcode {
 
 		$rating = $this->rating_string_for_district( $district, $day );
 
-		return plugins_url( "public/images/rating-{$rating}.png", __DIR__ );
+		return plugins_url( "public/images/fdr-$rating.png", __DIR__ );
 	}
 
 	public function fire_danger_rating_image_tag( $attributes ): string {

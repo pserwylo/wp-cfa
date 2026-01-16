@@ -26,7 +26,7 @@ Ensure you have selected your correct fire district from Settings -> WP CFA -> D
 
 ### Date and time
 
-## Example
+## Examples
 
 ### Variable message screen
 
